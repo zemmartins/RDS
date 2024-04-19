@@ -102,15 +102,16 @@ parser MyParser(packet_in packet,
         transition parse_ethernet;
     }
 
-    /*
-    state parse_ethernet {
-        packet.extract(hdr.ethernet);
-        transition select(hdr.ethernet.etherType) {
-            TYPE_IPV4:  <the name of the ipv4 parser>
-            default: accept;
-        }
-    }
-    */
+    
+    // /*
+    // state parse_ethernet {
+    //     packet.extract(hdr.ethernet);
+    //     transition select(hdr.ethernet.etherType) {
+    //         TYPE_IPV4:  <the name of the ipv4 parser>
+    //         default: accept;
+    //     }
+    // }
+    // */
 
 }
 

@@ -31,6 +31,8 @@ from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.cli import CLI
+from mininet.node import OVSSwitch
+
 
 from p4_mininet import P4Switch, P4Host
 
@@ -53,7 +55,7 @@ parser.add_argument('--behavioral-exe', help='Path to behavioral executable',
 parser.add_argument('--thrift-port', help='Thrift server port for table updates',
                     type=int, action="store", default=9090)
 parser.add_argument('--num-hosts', help='Number of hosts to connect to switch',
-                    type=int, action="store", default=2)
+                    type=int, action="store", default=3)
 parser.add_argument('--json', help='Path to JSON config file',
                     type=str, action="store", required=True)
 
@@ -63,7 +65,7 @@ sw_mac_base = "00:aa:bb:00:00:%02x"
 host_mac_base = "00:04:00:00:00:%02x"
 
 sw_ip_base = "10.0.%d.254"
-host_ip_base =  "10.0.%d.1/24"
+host_ip_base = "10.0.%d.1/24" 
 
 
 class SingleSwitchTopo(Topo):
@@ -84,11 +86,57 @@ class SingleSwitchTopo(Topo):
             sw_mac = sw_mac_base % (h + 1)
             self.addLink(host, switch, addr2=sw_mac)
 
+
+
+# FIXME: I think that's the way to make the topology
+class FinalTopo(Topo):
+    def __init__(self, sw_path, json_path, thrift_port, n, **opts):
+        Topo.__init__(self, **opts)
+        # adding the 3 P4Switches
+        switch1 = self.addSwitch('s1',
+                                sw_path = sw_path,
+                                json_path = json_path,
+                                thrift_port = thrift_port) 
+        
+        switch2 = self.addSwitch('s2',
+                        sw_path = sw_path,
+                        json_path = json_path,
+                        thrift_port = thrift_port+1)
+
+        switch3 = self.addSwitch('s3',
+                        sw_path = sw_path,
+                        json_path = json_path,
+                        thrift_port = thrift_port+2)
+        for i in range(3):
+            # adding host and link with the right mac and ip addrs
+            if i == 0:
+                host = self.addHost('h%d' % (i + 1),
+                                ip = "10.0.1.1/24" ,
+                                mac = "00:04:00:00:00:01")
+                self.addLink(host, switch1, addr2="00:aa:bb:00:00:01")
+            elif i ==1:
+                host = self.addHost('h%d' % (i + 1),
+                                ip = "10.0.6.1/24" ,
+                                mac = "00:04:00:00:00:03")
+                self.addLink(host, switch2, addr2="00:aa:dd:00:00:02")
+            else: 
+                host = self.addHost('h%d' % (i + 1),
+                                ip = "10.0.3.1/24" ,
+                                mac = "00:04:00:00:00:02")
+                self.addLink(host, switch3, addr2="00:aa:cc:00:00:01")
+
+
+        self.addLink(switch1, switch2, addr1="00:aa:bb:00:00:03", addr2="00:aa:dd:00:00:01")
+        self.addLink(switch1, switch3, addr1="00:aa:bb:00:00:02" , addr2="00:aa:cc:00:00:02")
+        self.addLink(switch2, switch3, addr1="00:aa:dd:00:00:03" , addr2="00:aa:cc:00:00:03")
+
+        
+
 def main():
 
     num_hosts = args.num_hosts
 
-    topo = SingleSwitchTopo(args.behavioral_exe,
+    topo = FinalTopo(args.behavioral_exe,
                             args.json,
                             args.thrift_port,
                             num_hosts)
