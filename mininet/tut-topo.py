@@ -61,32 +61,6 @@ parser.add_argument('--json', help='Path to JSON config file',
 
 args = parser.parse_args()
 
-sw_mac_base = "00:aa:bb:00:00:%02x"
-host_mac_base = "00:04:00:00:00:%02x"
-
-sw_ip_base = "10.0.%d.254"
-host_ip_base = "10.0.%d.1/24" 
-
-
-class SingleSwitchTopo(Topo):
-    def __init__(self, sw_path, json_path, thrift_port, n, **opts):
-        # Initialize topology and default options
-        Topo.__init__(self, **opts)
-        # adding a P4Switch
-        switch = self.addSwitch('s1',
-                                sw_path = sw_path,
-                                json_path = json_path,
-                                thrift_port = thrift_port)
-        # adding host and link with the right mac and ip addrs
-        # declaring a link: addr2=sw_mac gives a mac to the switch port
-        for h in range(n):
-            host = self.addHost('h%d' % (h + 1),
-                                ip = host_ip_base % (h + 1),
-                                mac = host_mac_base % (h + 1))
-            sw_mac = sw_mac_base % (h + 1)
-            self.addLink(host, switch, addr2=sw_mac)
-
-
 
 # FIXME: I think that's the way to make the topology
 class FinalTopo(Topo):
@@ -114,7 +88,7 @@ class FinalTopo(Topo):
                                 ip = "10.0.1.1/24" ,
                                 mac = "00:04:00:00:00:01")
                 self.addLink(host, switch1, addr2="00:aa:bb:00:00:01")
-            elif i ==1:
+            elif i == 1:
                 host = self.addHost('h%d' % (i + 1),
                                 ip = "10.0.6.1/24" ,
                                 mac = "00:04:00:00:00:03")
@@ -126,9 +100,9 @@ class FinalTopo(Topo):
                 self.addLink(host, switch3, addr2="00:aa:cc:00:00:01")
 
 
-        # self.addLink(switch1, switch2, addr1="00:aa:bb:00:00:03", addr2="00:aa:dd:00:00:01")
-        # self.addLink(switch1, switch3, addr1="00:aa:bb:00:00:02" , addr2="00:aa:cc:00:00:02")
-        # self.addLink(switch2, switch3, addr1="00:aa:dd:00:00:03" , addr2="00:aa:cc:00:00:03")
+        self.addLink(switch1, switch2, addr1="00:aa:bb:00:00:03", addr2="00:aa:dd:00:00:01")
+        self.addLink(switch1, switch3, addr1="00:aa:bb:00:00:02" , addr2="00:aa:cc:00:00:02")
+        self.addLink(switch2, switch3, addr1="00:aa:dd:00:00:03" , addr2="00:aa:cc:00:00:03")
 
         
 
@@ -153,39 +127,46 @@ def main():
     # our software switch.
     net.start()
 
-    # an array of the mac addrs from the switch
-    sw1_mac = ["00:aa:bb:00:00:01","00:aa:bb:00:00:02","00:aa:bb:00:00:03"]
-    sw2_mac = ["00:aa:dd:00:00:02","00:aa:dd:00:00:03","00:aa:dd:00:00:01"]
-    sw3_mac = ["00:aa:cc:00:00:01","00:aa:cc:00:00:03","00:aa:cc:00:00:02"]
+    # # an array of the mac addrs from the switch
+    # sw1_mac = ["00:aa:bb:00:00:01","00:aa:bb:00:00:02","00:aa:bb:00:00:03"]
+    # sw2_mac = ["00:aa:dd:00:00:02","00:aa:dd:00:00:03","00:aa:dd:00:00:01"]
+    # sw3_mac = ["00:aa:cc:00:00:01","00:aa:cc:00:00:03","00:aa:cc:00:00:02"]
     # an array of the ip addrs from the switch 
     # they are only used to define defaultRoutes on hosts 
-    sw1_addr = ["10.0.1.254","10.0.2.254","10.0.5.251"]
-    sw2_addr = ["10.0.6.250","10.0.4.250","10.0.5.250"]
-    sw3_addr = ["10.0.3.253","10.0.4.252","10.0.2.253"]
+    # sw1_addr = ["10.0.1.254","10.0.2.254","10.0.5.251"]
+    # sw2_addr = ["10.0.6.250","10.0.4.250","10.0.5.250"]
+    # sw3_addr = ["10.0.3.253","10.0.4.252","10.0.2.253"]
 
     # h.setARP() populates the arp table of the host
     # h.setDefaultRoute() sets the defaultRoute for the host
     # populating the arp table of the host with the switch ip and switch mac
     # avoids the need for arp request from the host
-    for n in range(num_hosts):
-        for s in range(0,3):
-            h = net.get('h%d' % (n + 1))
-            if n == 0:
-                # Host 1 is connected to Switch 1
-                h.setARP(sw1_addr[s], sw1_mac[s])  
-                h.setDefaultRoute("dev eth0 via %s" % sw1_addr[s])  
-            elif n == 1:
-                # Host 2 is connected to Switch 2
-                h.setARP(sw2_addr[s], sw2_mac[s])  
-                h.setDefaultRoute("dev eth0 via %s" % sw2_addr[s]) 
-            else:
-                # Host 3 is connected to Switch 3
-                h.setARP(sw3_addr[s], sw3_mac[s]) 
-                h.setDefaultRoute("dev eth0 via %s" % sw3_addr[s]) 
 
-            for n in range(num_hosts):
-                h = net.get('h%d' % (n + 1))
-                h.describe()
+    gateway_mac_r1 = "00:aa:bb:00:00:01"
+    gateway_ip_r1 = "10.0.1.254"
+    gateway_mac_r2 = "00:aa:dd:00:00:02"
+    gateway_ip_r2 = "10.0.6.250"
+    gateway_mac_r3 = "00:aa:cc:00:00:02"
+    gateway_ip_r3 = "10.0.3.253"
+
+
+    h11 = net.get('h1')
+    h11.setARP(gateway_ip_r1,gateway_mac_r1)
+    h11.setDefaultRoute("dev eth0 via %s" % gateway_ip_r1)
+
+
+    h11 = net.get('h2')
+    h11.setARP(gateway_ip_r2,gateway_mac_r2)
+    h11.setDefaultRoute("dev eth0 via %s" % gateway_ip_r2)
+
+    
+    h11 = net.get('h3')
+    h11.setARP(gateway_ip_r3,gateway_mac_r3)
+    h11.setDefaultRoute("dev eth0 via %s" % gateway_ip_r3)
+
+    for n in range(num_hosts):
+        h = net.get('h%d' % (n + 1))
+        h.describe()
 
     sleep(1)  # time for the host and switch confs to take effect
 
