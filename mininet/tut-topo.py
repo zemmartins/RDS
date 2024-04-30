@@ -62,7 +62,6 @@ parser.add_argument('--json', help='Path to JSON config file',
 args = parser.parse_args()
 
 
-# FIXME: I think that's the way to make the topology
 class FinalTopo(Topo):
     def __init__(self, sw_path, json_path, thrift_port, n, **opts):
         Topo.__init__(self, **opts)
@@ -146,7 +145,7 @@ def main():
     gateway_ip_r1 = "10.0.1.254"
     gateway_mac_r2 = "00:aa:dd:00:00:02"
     gateway_ip_r2 = "10.0.6.250"
-    gateway_mac_r3 = "00:aa:cc:00:00:02"
+    gateway_mac_r3 = "00:aa:cc:00:00:01"
     gateway_ip_r3 = "10.0.3.253"
 
 
