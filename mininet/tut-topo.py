@@ -32,6 +32,8 @@ from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.cli import CLI
 from mininet.node import OVSSwitch
+from mininet.node import OVSKernelSwitch
+import subprocess
 
 
 from p4_mininet import P4Switch, P4Host
@@ -66,42 +68,92 @@ class FinalTopo(Topo):
     def __init__(self, sw_path, json_path, thrift_port, n, **opts):
         Topo.__init__(self, **opts)
         # adding the 3 P4Switches
-        switch1 = self.addSwitch('s1',
+        router1 = self.addSwitch('r1',
+                                cls = P4Switch,
                                 sw_path = sw_path,
                                 json_path = json_path,
                                 thrift_port = thrift_port) 
         
-        switch2 = self.addSwitch('s2',
-                        sw_path = sw_path,
-                        json_path = json_path,
-                        thrift_port = thrift_port+1)
+        router2 = self.addSwitch('r2',
+                                cls = P4Switch,
+                                sw_path = sw_path,
+                                json_path = json_path,
+                                thrift_port = thrift_port+1)
 
-        switch3 = self.addSwitch('s3',
-                        sw_path = sw_path,
-                        json_path = json_path,
-                        thrift_port = thrift_port+2)
-        for i in range(3):
-            # adding host and link with the right mac and ip addrs
-            if i == 0:
-                host = self.addHost('h%d' % (i + 1),
-                                ip = "10.0.1.1/24" ,
-                                mac = "00:04:00:00:00:01")
-                self.addLink(host, switch1, addr2="00:aa:bb:00:00:01")
-            elif i == 1:
-                host = self.addHost('h%d' % (i + 1),
-                                ip = "10.0.6.1/24" ,
-                                mac = "00:04:00:00:00:03")
-                self.addLink(host, switch2, addr2="00:aa:dd:00:00:02")
-            else: 
-                host = self.addHost('h%d' % (i + 1),
-                                ip = "10.0.3.1/24" ,
-                                mac = "00:04:00:00:00:02")
-                self.addLink(host, switch3, addr2="00:aa:cc:00:00:01")
+        router3 = self.addSwitch('r3',
+                                cls = P4Switch,
+                                sw_path = sw_path,
+                                json_path = json_path,
+                                thrift_port = thrift_port+2)
+        
+        switch1 = self.addSwitch('s1',cls = OVSSwitch)
+
+        switch2 = self.addSwitch('s2',cls = OVSSwitch)
+
+        switch3 = self.addSwitch('s3',cls = OVSSwitch)
+
+        # LAN 1
+        host11 = self.addHost('h11',
+                        ip = "10.0.1.100/24" ,
+                        mac = "00:04:00:00:00:01")
+        self.addLink(host11, switch1, addr2="00:aa:00:00:00:11")
+
+        server11 = self.addHost('server11',
+                        ip = "10.0.1.10/24" ,
+                        mac = "00:04:00:00:00:20")
+        self.addLink(server11, switch1, addr2="00:aa:00:00:00:12")
+        
+        server12 = self.addHost('server12',
+                        ip = "10.0.1.20/24" ,
+                        mac = "00:04:00:00:00:30")
+        self.addLink(server12, switch1, addr2="00:aa:00:00:00:13")
+
+        # LAN 2
+        host21 = self.addHost('h21',
+                        ip = "10.0.2.100/24" ,
+                        mac = "00:04:00:00:00:03")
+        self.addLink(host21, switch2, addr2="00:aa:00:00:00:21")
+
+        server11 = self.addHost('server21',
+                        ip = "10.0.2.10/24" ,
+                        mac = "00:04:00:00:00:40")
+        self.addLink(server11, switch2, addr2="00:aa:00:00:00:22")
+        
+        server12 = self.addHost('server22',
+                        ip = "10.0.2.20/24" ,
+                        mac = "00:04:00:00:00:50")
+        self.addLink(server12, switch2, addr2="00:aa:00:00:00:23")
+
+        # LAN 3
+
+        host31 = self.addHost('h31',
+                        ip = "10.0.3.10/24" ,
+                        mac = "00:04:00:00:00:02")
+        self.addLink(host31, switch3, addr2="00:aa:00:00:00:31")
+
+        server31 = self.addHost('server31',
+                        ip = "10.0.3.10/24" ,
+                        mac = "00:04:00:00:00:60")
+        self.addLink(server31, switch3, addr2="00:aa:00:00:00:32")
+        
+        server32 = self.addHost('server32',
+                        ip = "10.0.3.20/24" ,
+                        mac = "00:04:00:00:00:70")
+        self.addLink(server32, switch3, addr2="00:aa:00:00:00:33")
 
 
-        self.addLink(switch1, switch2, addr1="00:aa:bb:00:00:03", addr2="00:aa:dd:00:00:01")
-        self.addLink(switch1, switch3, addr1="00:aa:bb:00:00:02" , addr2="00:aa:cc:00:00:02")
-        self.addLink(switch2, switch3, addr1="00:aa:dd:00:00:03" , addr2="00:aa:cc:00:00:03")
+        # Ligacoes entre routers
+
+        self.addLink(router1, router2, addr1="00:aa:bb:00:00:03", addr2="00:aa:dd:00:00:01")
+        self.addLink(router1, router3, addr1="00:aa:bb:00:00:02", addr2="00:aa:cc:00:00:02")
+        self.addLink(router2, router3, addr1="00:aa:dd:00:00:03", addr2="00:aa:cc:00:00:03")
+
+        # Ligacoes entre switches e routers
+
+        self.addLink(router1, switch1, addr1="00:aa:bb:00:00:01", addr2="00:aa:00:00:00:10")
+        self.addLink(router2, switch2, addr1="00:aa:dd:00:00:02", addr2="00:aa:00:00:00:20")
+        self.addLink(router3, switch3, addr1="00:aa:cc:00:00:01", addr2="00:aa:00:00:00:30")
+
 
         
 
@@ -118,7 +170,6 @@ def main():
     # the switch class is the P4Switch
     net = Mininet(topo = topo,
                   host = P4Host,
-                  switch = P4Switch,
                   controller = None)
 
     # Here, the mininet will use the constructor (__init__()) of the P4Switch class, 
@@ -126,15 +177,31 @@ def main():
     # our software switch.
     net.start()
 
-    # # an array of the mac addrs from the switch
-    # sw1_mac = ["00:aa:bb:00:00:01","00:aa:bb:00:00:02","00:aa:bb:00:00:03"]
-    # sw2_mac = ["00:aa:dd:00:00:02","00:aa:dd:00:00:03","00:aa:dd:00:00:01"]
-    # sw3_mac = ["00:aa:cc:00:00:01","00:aa:cc:00:00:03","00:aa:cc:00:00:02"]
-    # an array of the ip addrs from the switch 
-    # they are only used to define defaultRoutes on hosts 
-    # sw1_addr = ["10.0.1.254","10.0.2.254","10.0.5.251"]
-    # sw2_addr = ["10.0.6.250","10.0.4.250","10.0.5.250"]
-    # sw3_addr = ["10.0.3.253","10.0.4.252","10.0.2.253"]
+    commands = [
+        'sudo ovs-ofctl add-flow s1 in_port=1,actions=normal',
+        'sudo ovs-ofctl add-flow s1 in_port=2,actions=normal',
+        'sudo ovs-ofctl add-flow s1 in_port=3,actions=normal',
+        'sudo ovs-ofctl add-flow s1 in_port=4,actions=normal',
+        'sudo ovs-ofctl add-flow s2 in_port=1,actions=normal',
+        'sudo ovs-ofctl add-flow s2 in_port=2,actions=normal',
+        'sudo ovs-ofctl add-flow s2 in_port=3,actions=normal',
+        'sudo ovs-ofctl add-flow s2 in_port=4,actions=normal',
+        'sudo ovs-ofctl add-flow s3 in_port=1,actions=normal',
+        'sudo ovs-ofctl add-flow s3 in_port=2,actions=normal',
+        'sudo ovs-ofctl add-flow s3 in_port=3,actions=normal',
+        'sudo ovs-ofctl add-flow s3 in_port=4,actions=normal'
+    ]
+
+    # Execute each command in the list
+    for cmd in commands:
+        print('Running ...')
+        subprocess.call(cmd, shell=True)
+
+    subprocess.call('cd commands && simple_switch_CLI --thrift-port 9090 < commandsR1.txt && simple_switch_CLI --thrift-port 9091 < commandsR2.txt && simple_switch_CLI --thrift-port 9092 < commandsR3.txt', shell=True)
+
+
+
+
 
     # h.setARP() populates the arp table of the host
     # h.setDefaultRoute() sets the defaultRoute for the host
@@ -142,30 +209,50 @@ def main():
     # avoids the need for arp request from the host
 
     gateway_mac_r1 = "00:aa:bb:00:00:01"
-    gateway_ip_r1 = "10.0.1.254"
+    gateway_ip_r1  = "10.0.1.254"
     gateway_mac_r2 = "00:aa:dd:00:00:02"
-    gateway_ip_r2 = "10.0.6.250"
+    gateway_ip_r2  = "10.0.6.250"
     gateway_mac_r3 = "00:aa:cc:00:00:01"
-    gateway_ip_r3 = "10.0.3.253"
+    gateway_ip_r3  = "10.0.3.253"
 
-
-    h11 = net.get('h1')
+    
+    h11 = net.get('h11')
     h11.setARP(gateway_ip_r1,gateway_mac_r1)
     h11.setDefaultRoute("dev eth0 via %s" % gateway_ip_r1)
 
+    srv11 = net.get('server11')
+    srv11.setARP(gateway_ip_r1,gateway_mac_r1)
+    srv11.setDefaultRoute("dev eth0 via %s" % gateway_ip_r1)
+    
+    srv12 = net.get('server12')
+    srv12.setARP(gateway_ip_r1,gateway_mac_r1)
+    srv12.setDefaultRoute("dev eth0 via %s" % gateway_ip_r1)
 
-    h11 = net.get('h2')
-    h11.setARP(gateway_ip_r2,gateway_mac_r2)
-    h11.setDefaultRoute("dev eth0 via %s" % gateway_ip_r2)
+
+    h21 = net.get('h21')
+    h21.setARP(gateway_ip_r2,gateway_mac_r2)
+    h21.setDefaultRoute("dev eth0 via %s" % gateway_ip_r2)
+
+    srv21 = net.get('server21')
+    srv21.setARP(gateway_ip_r2,gateway_mac_r2)
+    srv21.setDefaultRoute("dev eth0 via %s" % gateway_ip_r2)
+
+    srv22 = net.get('server22')
+    srv22.setARP(gateway_ip_r2,gateway_mac_r2)
+    srv22.setDefaultRoute("dev eth0 via %s" % gateway_ip_r2)
 
     
-    h11 = net.get('h3')
-    h11.setARP(gateway_ip_r3,gateway_mac_r3)
-    h11.setDefaultRoute("dev eth0 via %s" % gateway_ip_r3)
+    h31 = net.get('h31')
+    h31.setARP(gateway_ip_r3,gateway_mac_r3)
+    h31.setDefaultRoute("dev eth0 via %s" % gateway_ip_r3)
 
-    for n in range(num_hosts):
-        h = net.get('h%d' % (n + 1))
-        h.describe()
+    srv31 = net.get('server31')
+    srv31.setARP(gateway_ip_r3,gateway_mac_r3)
+    srv31.setDefaultRoute("dev eth0 via %s" % gateway_ip_r3)
+
+    srv32 = net.get('server32')
+    srv32.setARP(gateway_ip_r3,gateway_mac_r3)
+    srv32.setDefaultRoute("dev eth0 via %s" % gateway_ip_r3)
 
     sleep(1)  # time for the host and switch confs to take effect
 

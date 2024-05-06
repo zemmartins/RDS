@@ -44,7 +44,7 @@ header ipv4_t {
     bit<8>    diffserv;
     bit<16>   totalLen;
     bit<16>   identification;
-    bit<3>    flags;
+    bit<3>    flags; TABLE_MISS, switch_id: 0, cxt_id: 0, sig: 13066375230741435979
     bit<13>   fragOffset;
     bit<8>    ttl;
     bit<8>    protocol;

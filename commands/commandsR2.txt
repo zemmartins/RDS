@@ -1,12 +1,16 @@
 reset_state
 table_set_default src_mac drop 
 table_set_default dst_mac drop 
-table_add ipv4_lpm ipv4_fwd 10.0.1.0/24 => 10.0.5.251 2
-table_add ipv4_lpm ipv4_fwd 10.0.6.1/32 => 10.0.6.1 1
-table_add ipv4_lpm ipv4_fwd 10.0.3.0/24 => 10.0.4.252 3
-table_add src_mac rewrite_src_mac 1 => 00:aa:dd:00:00:02
-table_add src_mac rewrite_src_mac 3 => 00:aa:dd:00:00:03
-table_add src_mac rewrite_src_mac 2 => 00:aa:dd:00:00:01
+table_add ipv4_lpm ipv4_fwd 10.0.1.0/24 => 10.0.5.251 1
+table_add ipv4_lpm ipv4_fwd 10.0.2.10/32 => 10.0.2.10 3
+table_add ipv4_lpm ipv4_fwd 10.0.2.20/32 => 10.0.2.20 3
+table_add ipv4_lpm ipv4_fwd 10.0.2.100/32 => 10.0.2.100 3
+table_add ipv4_lpm ipv4_fwd 10.0.3.0/24 => 10.0.4.252 2
+table_add src_mac rewrite_src_mac 3 => 00:aa:dd:00:00:02
+table_add src_mac rewrite_src_mac 2 => 00:aa:dd:00:00:03
+table_add src_mac rewrite_src_mac 1 => 00:aa:dd:00:00:01
 table_add dst_mac rewrite_dst_mac 10.0.5.251 => 00:aa:bb:00:00:03
 table_add dst_mac rewrite_dst_mac 10.0.4.252 => 00:aa:cc:00:00:03
-table_add dst_mac rewrite_dst_mac 10.0.6.1 => 00:04:00:00:00:03
+table_add dst_mac rewrite_dst_mac 10.0.2.10  => 00:04:00:00:00:40
+table_add dst_mac rewrite_dst_mac 10.0.2.20  => 00:04:00:00:00:50
+table_add dst_mac rewrite_dst_mac 10.0.2.100 => 00:04:00:00:00:03
