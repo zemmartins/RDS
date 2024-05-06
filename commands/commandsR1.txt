@@ -14,3 +14,4 @@ table_add dst_mac rewrite_dst_mac 10.0.1.20  => 00:04:00:00:00:30
 table_add dst_mac rewrite_dst_mac 10.0.1.100 => 00:04:00:00:00:01
 table_add dst_mac rewrite_dst_mac 10.0.5.250 => 00:aa:dd:00:00:01
 table_add dst_mac rewrite_dst_mac 10.0.2.253 => 00:aa:cc:00:00:02
+table_add firewall drop 10.0.2.0 10.0.1.10 0->65535 => 1

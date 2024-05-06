@@ -150,7 +150,14 @@ control MyVerifyChecksum(inout headers hdr, inout metadata meta) {
 control MyIngress(inout headers hdr,
                   inout metadata meta,
                   inout standard_metadata_t standard_metadata) {
+
+                    
     action drop() {
+        mark_to_drop(standard_metadata);
+    }
+
+    action dropFirewall(egressSpec_t port) {
+        standard_metadata.egress_spec = port;
         mark_to_drop(standard_metadata);
     }
 
@@ -196,6 +203,18 @@ control MyIngress(inout headers hdr,
         }
         default_action = NoAction(); // NoAction is defined in v1model - does nothing
     }
+
+    table firewall {
+        key = { 
+            hdr.ipv4.dstAddr : lpm ;
+            hdr.ipv4.srcAddr : exact; 
+        }
+        actions = {
+            drop;
+            NoAction;
+        }
+        default_action = NoAction();
+    }
     
     
     apply {
@@ -203,6 +222,7 @@ control MyIngress(inout headers hdr,
             ipv4_lpm.apply();
             src_mac.apply();
             dst_mac.apply();
+            firewall.apply();
         }
     }
 }

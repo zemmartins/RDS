@@ -114,20 +114,20 @@ class FinalTopo(Topo):
                         mac = "00:04:00:00:00:03")
         self.addLink(host21, switch2, addr2="00:aa:00:00:00:21")
 
-        server11 = self.addHost('server21',
+        server21 = self.addHost('server21',
                         ip = "10.0.2.10/24" ,
                         mac = "00:04:00:00:00:40")
-        self.addLink(server11, switch2, addr2="00:aa:00:00:00:22")
+        self.addLink(server21, switch2, addr2="00:aa:00:00:00:22")
         
-        server12 = self.addHost('server22',
+        server22 = self.addHost('server22',
                         ip = "10.0.2.20/24" ,
                         mac = "00:04:00:00:00:50")
-        self.addLink(server12, switch2, addr2="00:aa:00:00:00:23")
+        self.addLink(server22, switch2, addr2="00:aa:00:00:00:23")
 
         # LAN 3
 
         host31 = self.addHost('h31',
-                        ip = "10.0.3.10/24" ,
+                        ip = "10.0.3.100/24" ,
                         mac = "00:04:00:00:00:02")
         self.addLink(host31, switch3, addr2="00:aa:00:00:00:31")
 
@@ -211,7 +211,7 @@ def main():
     gateway_mac_r1 = "00:aa:bb:00:00:01"
     gateway_ip_r1  = "10.0.1.254"
     gateway_mac_r2 = "00:aa:dd:00:00:02"
-    gateway_ip_r2  = "10.0.6.250"
+    gateway_ip_r2  = "10.0.2.250"
     gateway_mac_r3 = "00:aa:cc:00:00:01"
     gateway_ip_r3  = "10.0.3.253"
 
