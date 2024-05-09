@@ -198,7 +198,7 @@ def main():
         subprocess.call(cmd, shell=True)
 
     subprocess.call('cd commands && simple_switch_CLI --thrift-port 9090 < commandsR1.txt && simple_switch_CLI --thrift-port 9091 < commandsR2.txt && simple_switch_CLI --thrift-port 9092 < commandsR3.txt', shell=True)
-
+    print('Done with the routers!!')
 
 
 

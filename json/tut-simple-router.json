@@ -56,6 +56,23 @@
         ["srcAddr", 32, false],
         ["dstAddr", 32, false]
       ]
+    },
+    {
+      "name" : "tcp_t",
+      "id" : 4,
+      "fields" : [
+        ["srcPort", 16, false],
+        ["dstPort", 16, false],
+        ["seqNo", 32, false],
+        ["ackNo", 32, false],
+        ["dataOffset", 4, false],
+        ["res", 3, false],
+        ["ecn", 3, false],
+        ["ctrl", 6, false],
+        ["window", 16, false],
+        ["checksum", 16, false],
+        ["urgentPtr", 16, false]
+      ]
     }
   ],
   "headers" : [
@@ -86,6 +103,13 @@
       "header_type" : "ipv4_t",
       "metadata" : false,
       "pi_omit" : true
+    },
+    {
+      "name" : "tcp",
+      "id" : 4,
+      "header_type" : "tcp_t",
+      "metadata" : false,
+      "pi_omit" : true
     }
   ],
   "header_stacks" : [],
@@ -110,32 +134,8 @@
       "init_state" : "start",
       "parse_states" : [
         {
-          "name" : "parse_ipv4",
-          "id" : 0,
-          "parser_ops" : [
-            {
-              "parameters" : [
-                {
-                  "type" : "regular",
-                  "value" : "ipv4"
-                }
-              ],
-              "op" : "extract"
-            }
-          ],
-          "transitions" : [
-            {
-              "type" : "default",
-              "value" : null,
-              "mask" : null,
-              "next_state" : null
-            }
-          ],
-          "transition_key" : []
-        },
-        {
           "name" : "start",
-          "id" : 1,
+          "id" : 0,
           "parser_ops" : [
             {
               "parameters" : [
@@ -167,6 +167,65 @@
               "value" : ["ethernet", "etherType"]
             }
           ]
+        },
+        {
+          "name" : "parse_ipv4",
+          "id" : 1,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "ipv4"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "hexstr",
+              "value" : "0x06",
+              "mask" : null,
+              "next_state" : "parse_tcp"
+            },
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "protocol"]
+            }
+          ]
+        },
+        {
+          "name" : "parse_tcp",
+          "id" : 2,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "tcp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "type" : "default",
+              "value" : null,
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
         }
       ]
     }
@@ -277,7 +336,7 @@
           ],
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 156,
+            "line" : 159,
             "column" : 8,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -299,7 +358,7 @@
           ],
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 156,
+            "line" : 159,
             "column" : 8,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -321,7 +380,7 @@
           ],
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 156,
+            "line" : 159,
             "column" : 8,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -343,7 +402,7 @@
           ],
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 156,
+            "line" : 159,
             "column" : 8,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -378,7 +437,7 @@
           ],
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 165,
+            "line" : 163,
             "column" : 8,
             "source_fragment" : "meta.next_hop_ipv4 = nxt_hop"
           }
@@ -397,7 +456,7 @@
           ],
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 166,
+            "line" : 164,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port"
           }
@@ -439,7 +498,7 @@
           ],
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 167,
+            "line" : 165,
             "column" : 8,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
           }
@@ -470,7 +529,7 @@
           ],
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 171,
+            "line" : 169,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.srcAddr = src_mac"
           }
@@ -501,7 +560,7 @@
           ],
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 175,
+            "line" : 173,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dstAddr = dst_mac"
           }
@@ -515,7 +574,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "p4/tut-simple-router.p4",
-        "line" : 150,
+        "line" : 153,
         "column" : 8,
         "source_fragment" : "MyIngress"
       },
@@ -526,7 +585,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 197,
+            "line" : 195,
             "column" : 10,
             "source_fragment" : "ipv4_lpm"
           },
@@ -564,7 +623,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 187,
+            "line" : 185,
             "column" : 10,
             "source_fragment" : "src_mac"
           },
@@ -601,7 +660,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 178,
+            "line" : 176,
             "column" : 10,
             "source_fragment" : "dst_mac"
           },
@@ -638,25 +697,37 @@
           "id" : 3,
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 207,
+            "line" : 205,
             "column" : 10,
             "source_fragment" : "firewall"
           },
           "key" : [
             {
               "match_type" : "lpm",
+              "name" : "hdr.ipv4.srcAddr",
+              "target" : ["ipv4", "srcAddr"],
+              "mask" : null
+            },
+            {
+              "match_type" : "exact",
               "name" : "hdr.ipv4.dstAddr",
               "target" : ["ipv4", "dstAddr"],
               "mask" : null
             },
             {
               "match_type" : "exact",
-              "name" : "hdr.ipv4.srcAddr",
-              "target" : ["ipv4", "srcAddr"],
+              "name" : "hdr.ipv4.protocol",
+              "target" : ["ipv4", "protocol"],
+              "mask" : null
+            },
+            {
+              "match_type" : "range",
+              "name" : "hdr.tcp.dstPort",
+              "target" : ["tcp", "dstPort"],
               "mask" : null
             }
           ],
-          "match_type" : "lpm",
+          "match_type" : "range",
           "type" : "simple",
           "max_size" : 1024,
           "with_counters" : false,
