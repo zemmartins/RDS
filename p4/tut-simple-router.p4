@@ -13,6 +13,7 @@
 const bit<16> TYPE_IPV4 = 0x800;
 const bit<8> TYPE_TCP  = 0x06;
 const bit<8> TYPE_UDP  = 0x11;
+const bit<8> TYPE_ICMP = 0x01;
 
 /*************************************************************************
 *********************** H E A D E R S  ***********************************
@@ -36,6 +37,13 @@ header ethernet_t {
     macAddr_t dstAddr;
     macAddr_t srcAddr;
     bit<16>   etherType;
+}
+
+header icmp_t {
+    bit<8>  type;
+    bit<8>  code;
+    bit<16> checksum;
+    bit<32> restOfHeader;
 }
 
 header ipv4_t {
@@ -82,6 +90,7 @@ struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
     tcp_t        tcp;
+    icmp_t       icmp;
 }
 
 /*************************************************************************
@@ -122,7 +131,7 @@ parser MyParser(packet_in packet,
         packet.extract(hdr.ipv4);
         transition select(hdr.ipv4.protocol){
             TYPE_TCP: parse_tcp;
-            //TODO: ICMP
+            TYPE_ICMP: parse_icmp;
             default:accept;
         }
     }
@@ -132,9 +141,10 @@ parser MyParser(packet_in packet,
         transition accept;
     }
 
-
-
-
+    state parse_icmp {
+        packet.extract(hdr.icmp);
+        transition accept;
+    }
 }
 
 /*************************************************************************
@@ -270,6 +280,8 @@ control MyDeparser(packet_out packet, in headers hdr) {
     apply {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
+        packet.emit(hdr.tcp);
+        packet.emit(hdr.icmp);
     }
 }
 

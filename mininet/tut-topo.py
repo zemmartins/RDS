@@ -155,7 +155,6 @@ class FinalTopo(Topo):
         self.addLink(router3, switch3, addr1="00:aa:cc:00:00:01", addr2="00:aa:00:00:00:30")
 
 
-        
 
 def main():
 
@@ -256,7 +255,7 @@ def main():
 
     sleep(1)  # time for the host and switch confs to take effect
 
-    print("Ready !")
+    print("Ready !")   
 
     CLI( net )
     net.stop()
