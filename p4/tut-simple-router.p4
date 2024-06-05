@@ -226,6 +226,21 @@ control MyIngress(inout headers hdr,
         default_action = NoAction();
     }
     
+
+    table firewall_new {
+        key = { 
+            hdr.ipv4.srcAddr : lpm;
+            hdr.ipv4.dstAddr : exact;
+            hdr.ipv4.protocol: exact;
+            hdr.tcp.dstPort: range;
+            hdr.tcp.srcPort: range;
+        }
+        actions = {
+            drop;
+            NoAction;
+        }
+        default_action = NoAction();
+    }
     
     apply {
         if (hdr.ipv4.isValid()) {
@@ -233,6 +248,7 @@ control MyIngress(inout headers hdr,
             src_mac.apply();
             dst_mac.apply();
             firewall.apply();
+            firewall_new.apply();
         }
     }
 }
