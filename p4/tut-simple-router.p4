@@ -183,9 +183,20 @@ control MyIngress(inout headers hdr,
         hdr.ethernet.dstAddr = dst_mac;
     }
 
-    action reply(ip4Addr_t srcAddr, ip4Addr_t dstAddr) {
-        hdr.ipv4.srcAddr = dstAddr;
-        hdr.ipv4.dstAddr = srcAddr;
+    action send_icmp_reply() {
+        bit<48> tmp_mac; 
+        tmp_mac = hdr.ethernet.srcAddr;
+        hdr.ethernet.srcAddr = hdr.ethernet.dstAddr;
+        hdr.ethernet.dstAddr = tmp_mac;
+
+        bit<32> tmp_ip;
+        tmp_ip = hdr.ipv4.srcAddr;
+        hdr.ipv4.srcAddr = hdr.ipv4.dstAddr;
+        hdr.ipv4.dstAddr = tmp_ip;
+
+        hdr.icmp.type = 0;
+
+        standard_metadata.egress_spec = standard_metadata.ingress_port;
     }
 
     table dst_mac {
@@ -234,7 +245,7 @@ control MyIngress(inout headers hdr,
 
     table allow_TCP_only {
         key = {
-            hdr.ipv4.protocol: exact;
+            hdr.ipv4.protocol: range;
         }
         actions = {
             drop;
@@ -246,13 +257,11 @@ control MyIngress(inout headers hdr,
     table ICMP_to_Interface {
         key = {
             hdr.ipv4.protocol: exact;
-            hdr.ipv4.srcAddr : exact;
             hdr.ipv4.dstAddr : exact;
         }
         actions = {
-            reply;
+            send_icmp_reply;
             NoAction;
-            drop;
         }
         default_action = NoAction();
     }
@@ -277,7 +286,6 @@ control MyIngress(inout headers hdr,
             firewall_new.apply();
             allow_TCP_only.apply();
             ICMP_to_Interface.apply();
-            drop_some_ICMP.apply();
         }
     }
 }
