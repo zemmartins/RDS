@@ -183,6 +183,11 @@ control MyIngress(inout headers hdr,
         hdr.ethernet.dstAddr = dst_mac;
     }
 
+    action reply(ip4Addr_t srcAddr, ip4Addr_t dstAddr) {
+        hdr.ipv4.srcAddr = dstAddr;
+        hdr.ipv4.dstAddr = srcAddr;
+    }
+
     table dst_mac {
         key = {meta.next_hop_ipv4: exact;}
         actions = {
@@ -212,21 +217,6 @@ control MyIngress(inout headers hdr,
         default_action = NoAction(); // NoAction is defined in v1model - does nothing
     }
 
-    table firewall {
-        key = { 
-            hdr.ipv4.srcAddr : lpm;
-            hdr.ipv4.dstAddr : exact;
-            hdr.ipv4.protocol: exact;
-            hdr.tcp.dstPort: range;
-        }
-        actions = {
-            drop;
-            NoAction;
-        }
-        default_action = NoAction();
-    }
-    
-
     table firewall_new {
         key = { 
             hdr.ipv4.srcAddr : lpm;
@@ -241,14 +231,53 @@ control MyIngress(inout headers hdr,
         }
         default_action = NoAction();
     }
+
+    table allow_TCP_only {
+        key = {
+            hdr.ipv4.protocol: exact;
+        }
+        actions = {
+            drop;
+            NoAction;
+        }
+        default_action = NoAction();
+    }
+
+    table ICMP_to_Interface {
+        key = {
+            hdr.ipv4.protocol: exact;
+            hdr.ipv4.srcAddr : exact;
+            hdr.ipv4.dstAddr : exact;
+        }
+        actions = {
+            reply;
+            NoAction;
+            drop;
+        }
+        default_action = NoAction();
+    }
+
+    table drop_some_ICMP {
+        key = {
+            hdr.ipv4.protocol: exact;
+            hdr.ipv4.srcAddr: exact;
+        }
+        actions = {
+            drop;
+            NoAction;
+        }
+        default_action = NoAction();
+    }
     
     apply {
         if (hdr.ipv4.isValid()) {
             ipv4_lpm.apply();
             src_mac.apply();
             dst_mac.apply();
-            firewall.apply();
             firewall_new.apply();
+            allow_TCP_only.apply();
+            ICMP_to_Interface.apply();
+            drop_some_ICMP.apply();
         }
     }
 }

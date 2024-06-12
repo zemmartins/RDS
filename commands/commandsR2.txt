@@ -30,3 +30,4 @@ table_add firewall_new drop 10.0.3.0/24 10.0.2.20  0x06 0->21 0->442         => 
 table_add firewall_new drop 10.0.3.0/24 10.0.2.20  0x06 0->21 444->65535     => 1
 table_add firewall_new drop 10.0.3.0/24 10.0.2.20  0x06 23->65535 0->442     => 1
 table_add firewall_new drop 10.0.3.0/24 10.0.2.20  0x06 23->65535 444->65535 => 1
+table_add allow_TCP_only drop 0x011 =>
