@@ -1044,12 +1044,6 @@
           "key" : [
             {
               "match_type" : "exact",
-              "name" : "hdr.ipv4.protocol",
-              "target" : ["ipv4", "protocol"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
               "name" : "hdr.ipv4.dstAddr",
               "target" : ["ipv4", "dstAddr"],
               "mask" : null
