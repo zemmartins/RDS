@@ -1,9 +1,6 @@
 reset_state
 table_set_default src_mac drop 
 table_set_default dst_mac drop 
-table_add ICMP_to_Interface send_icmp_reply 0x01 10.0.2.251 =>
-table_add ICMP_to_Interface send_icmp_reply 0x01 10.0.2.252 =>
-table_add ICMP_to_Interface send_icmp_reply 0x01 10.0.2.250 =>
 table_add ipv4_lpm ipv4_fwd 10.0.1.0/24 => 10.0.1.252 1
 table_add ipv4_lpm ipv4_fwd 10.0.2.10/32 => 10.0.2.10 3
 table_add ipv4_lpm ipv4_fwd 10.0.2.20/32 => 10.0.2.20 3
@@ -33,6 +30,9 @@ table_add firewall_new drop 10.0.3.0/24 10.0.2.20  0x06 0->21 0->442         => 
 table_add firewall_new drop 10.0.3.0/24 10.0.2.20  0x06 0->21 444->65535     => 1
 table_add firewall_new drop 10.0.3.0/24 10.0.2.20  0x06 23->65535 0->442     => 1
 table_add firewall_new drop 10.0.3.0/24 10.0.2.20  0x06 23->65535 444->65535 => 1
-table_add allow_TCP_only drop 0x00->0x00 => 100
-table_add allow_TCP_only drop 0x02->0x05 => 100
-table_add allow_TCP_only drop 0x07->0xff => 100
+table_add allow_TCP_ICMP drop 0x00->0x00 => 100
+table_add allow_TCP_ICMP drop 0x02->0x05 => 100
+table_add allow_TCP_ICMP drop 0x07->0xff => 100
+table_add ICMP_to_Interface send_icmp_reply 0x01 10.0.2.251 =>
+table_add ICMP_to_Interface send_icmp_reply 0x01 10.0.2.252 =>
+table_add ICMP_to_Interface send_icmp_reply 0x01 10.0.2.250 =>

@@ -243,7 +243,7 @@ control MyIngress(inout headers hdr,
         default_action = NoAction();
     }
 
-    table allow_TCP_only {
+    table allow_TCP_ICMP {
         key = {
             hdr.ipv4.protocol: range;
         }
@@ -265,18 +265,6 @@ control MyIngress(inout headers hdr,
         }
         default_action = NoAction();
     }
-
-    table drop_some_ICMP {
-        key = {
-            hdr.ipv4.protocol: exact;
-            hdr.ipv4.srcAddr: exact;
-        }
-        actions = {
-            drop;
-            NoAction;
-        }
-        default_action = NoAction();
-    }
     
     apply {
         if (hdr.ipv4.isValid()) {
@@ -284,7 +272,7 @@ control MyIngress(inout headers hdr,
             src_mac.apply();
             dst_mac.apply();
             firewall_new.apply();
-            allow_TCP_only.apply();
+            allow_TCP_ICMP.apply();
             ICMP_to_Interface.apply();
         }
     }

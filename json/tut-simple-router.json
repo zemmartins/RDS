@@ -286,7 +286,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "p4/tut-simple-router.p4",
-        "line" : 332,
+        "line" : 320,
         "column" : 8,
         "source_fragment" : "MyDeparser"
       },
@@ -303,7 +303,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "p4/tut-simple-router.p4",
-        "line" : 310,
+        "line" : 298,
         "column" : 1,
         "source_fragment" : "update_checksum( ..."
       },
@@ -983,10 +983,10 @@
           "direct_meters" : null,
           "action_ids" : [7, 1],
           "actions" : ["MyIngress.drop", "NoAction"],
-          "base_default_next" : "MyIngress.allow_TCP_only",
+          "base_default_next" : "MyIngress.allow_TCP_ICMP",
           "next_tables" : {
-            "MyIngress.drop" : "MyIngress.allow_TCP_only",
-            "NoAction" : "MyIngress.allow_TCP_only"
+            "MyIngress.drop" : "MyIngress.allow_TCP_ICMP",
+            "NoAction" : "MyIngress.allow_TCP_ICMP"
           },
           "default_entry" : {
             "action_id" : 1,
@@ -996,13 +996,13 @@
           }
         },
         {
-          "name" : "MyIngress.allow_TCP_only",
+          "name" : "MyIngress.allow_TCP_ICMP",
           "id" : 4,
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
             "line" : 246,
             "column" : 10,
-            "source_fragment" : "allow_TCP_only"
+            "source_fragment" : "allow_TCP_ICMP"
           },
           "key" : [
             {
@@ -1083,7 +1083,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "p4/tut-simple-router.p4",
-            "line" : 282,
+            "line" : 270,
             "column" : 12,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -1108,7 +1108,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "p4/tut-simple-router.p4",
-        "line" : 297,
+        "line" : 285,
         "column" : 8,
         "source_fragment" : "MyEgress"
       },
@@ -1124,7 +1124,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "p4/tut-simple-router.p4",
-        "line" : 310,
+        "line" : 298,
         "column" : 1,
         "source_fragment" : "update_checksum( ..."
       },
